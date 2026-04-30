@@ -44,13 +44,16 @@ public class CreateCapacityUseCase implements CreateCapacityService {
     }
 
     private Mono<Void> validateTechnologiesExist(List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
         return technologyCatalogRepository.findAllById(technologyIds)
                 .collectList()
                 .flatMap(found -> {
                     if (found.size() != technologyIds.size()) {
                         return Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND));
                     }
-                    return Mono.empty();
+                    return Mono.<Void>empty();
                 });
     }
 

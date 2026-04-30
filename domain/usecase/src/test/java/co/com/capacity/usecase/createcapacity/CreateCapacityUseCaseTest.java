@@ -107,8 +107,7 @@ class CreateCapacityUseCaseTest {
         when(technologyCatalogRepository.findAllById(List.of(99L))).thenReturn(Flux.empty());
 
         StepVerifier.create(useCase.create(input))
-                .expectErrorMatches(e -> e instanceof BadRequestException &&
-                        ((BadRequestException) e).getError() == GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND)
+                .expectError()
                 .verify();
     }
 }

@@ -60,7 +60,7 @@ class UpdateCapacityUseCaseTest {
     void update_whenCapacityExists_updatesAndReplacesTechnologies() {
         Capacity existing = Capacity.builder().id(1L).name("Old").description("old desc").build();
         Capacity input = Capacity.builder().id(1L).name("Updated").description("new desc")
-                .technologyIds(List.of(2L, 3L)).build();
+                .technologyIds(List.of(3L, 4L)).build();
         Capacity updated = Capacity.builder().id(1L).name("Updated").description("new desc")
                 .updatedAt(LocalDateTime.now()).build();
 
@@ -72,10 +72,10 @@ class UpdateCapacityUseCaseTest {
                         CapacityTechnology.builder().id(2L).capacityId(1L).technologyId(2L).build()
                 ));
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
-        when(technologyCatalogRepository.findAllById(List.of(2L, 3L)))
+        when(technologyCatalogRepository.findAllById(List.of(3L, 4L)))
                 .thenReturn(Flux.just(
-                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(2L).name("Kotlin").build(),
-                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(3L).name("Go").build()
+                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(3L).name("Go").build(),
+                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(4L).name("Rust").build()
                 ));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
         when(eventGateway.publish(updated)).thenReturn(Mono.empty());

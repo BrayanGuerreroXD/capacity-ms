@@ -78,6 +78,9 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     }
 
     private Mono<Void> validateAndSaveTechnologies(Long capacityId, Set<Long> technologyIds) {
+        if (technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
         return technologyCatalogRepository.findAllById(List.copyOf(technologyIds))
                 .collectList()
                 .flatMap(found -> {

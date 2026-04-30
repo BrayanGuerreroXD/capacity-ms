@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -59,9 +61,22 @@ class CapacityRouterTest {
         CapacityHandler handler = new CapacityHandler(createService, updateService, getService, deleteService, mapper);
         var routes = new CapacityRouter().capacityRoutes(handler);
 
-        client = WebTestClient.bindToServer(new HttpHandlerConnector(
-                WebHttpHandlerBuilder.webHandler(RouterFunctions.toWebHandler(routes)).build()
-        )).build();
+        var httpHandler = WebHttpHandlerBuilder
+                .webHandler(RouterFunctions.toWebHandler(routes))
+                .exceptionHandler((exchange, ex) -> {
+                    if (ex instanceof NotFoundException) {
+                        exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+                        return Mono.empty();
+                    }
+                    if (ex instanceof ConflictException) {
+                        exchange.getResponse().setStatusCode(HttpStatus.CONFLICT);
+                        return Mono.empty();
+                    }
+                    return Mono.error(ex);
+                })
+                .build();
+
+        client = WebTestClient.bindToServer(new HttpHandlerConnector(httpHandler)).build();
     }
 
     @Test
