@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation project(':model')
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    runtimeOnly 'io.asyncer:r2dbc-mysql'
+    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+}

@@ -16,6 +16,10 @@ rootProject.name = 'capacity-ms'
 include ':app-service'
 include ':model'
 include ':usecase'
+include ':driven-adapters'
+include ':entry-points'
 project(':app-service').projectDir = file('./applications/app-service')
 project(':model').projectDir = file('./domain/model')
 project(':usecase').projectDir = file('./domain/usecase')
+project(':driven-adapters').projectDir = file('./infrastructure/driven-adapters')
+project(':entry-points').projectDir = file('./infrastructure/entry-points')
