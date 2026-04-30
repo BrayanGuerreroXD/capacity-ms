@@ -45,6 +45,12 @@ public class TechnologyCatalogRepositoryAdapter implements TechnologyCatalogRepo
     }
 
     @Override
+    public Flux<TechnologyCatalog> findAll() {
+        return entityRepository.findAll()
+                .map(mapper::toModel);
+    }
+
+    @Override
     public Flux<TechnologyCatalog> findAllById(List<Long> ids) {
         return entityRepository.findAllById(ids)
                 .map(mapper::toModel);
