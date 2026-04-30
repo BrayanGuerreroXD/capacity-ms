@@ -1,0 +1,55 @@
+server:
+  port: 7700
+
+spring:
+  application:
+    name: capacity-ms
+  devtools:
+    add-properties: false
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/db_capacity
+    username: root
+    password: 1234
+  flyway:
+    url: jdbc:mysql://localhost:3306/db_capacity
+    user: root
+    password: 1234
+    locations: classpath:db/migration
+  profiles:
+    include: null
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: capacity-ms-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:7700"
+
+kafka:
+  topics:
+    sync-technology-catalog: sync.technologies.catalog
+    sync-technology-deleted: sync.technologies.deleted
+    sync-capacity-catalog: sync.capacity.catalog
+    sync-capacity-deleted: sync.capacity.deleted
+    sync-capacity-technology-catalog: sync.capacity.technology.catalog
+    sync-capacity-technology-deleted: sync.capacity.technology.deleted
+    auth-login-admin: auth.login.admin
+    generic-auth-logout: generic.auth.logout
