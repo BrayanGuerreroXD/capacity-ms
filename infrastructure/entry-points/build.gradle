@@ -12,6 +12,7 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3'
     implementation project(':driven-adapters')
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
