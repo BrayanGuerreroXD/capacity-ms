@@ -43,6 +43,12 @@ management:
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:7700"
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 kafka:
   topics:
     sync-technology-catalog: sync.technologies.catalog
