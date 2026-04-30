@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation project(':model')
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    runtimeOnly 'io.asyncer:r2dbc-mysql'
     implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

@@ -1,7 +1,7 @@
 package co.com.capacity.entryPoints.kafka.consumer;
 
 import co.com.capacity.usecase.deletetechnologycatalog.DeleteTechnologyCatalogService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

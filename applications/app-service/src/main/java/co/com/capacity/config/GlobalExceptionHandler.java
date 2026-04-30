@@ -6,7 +6,7 @@ import co.com.capacity.model.utils.exception.BadRequestException;
 import co.com.capacity.model.utils.exception.ConflictException;
 import co.com.capacity.model.utils.exception.NotFoundException;
 import co.com.capacity.model.utils.exception.UnauthorizedException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
