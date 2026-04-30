@@ -22,6 +22,8 @@ kafka:
     sync-technology-deleted: sync-technology-deleted
     sync-capacity-catalog: sync-capacity-catalog
     sync-capacity-deleted: sync-capacity-deleted
+    sync-capacity-technology-catalog: sync-capacity-technology-catalog
+    sync-capacity-technology-deleted: sync-capacity-technology-deleted
     auth-login-admin: auth-login-admin
     generic-auth-logout: generic-auth-logout
   consumer:
