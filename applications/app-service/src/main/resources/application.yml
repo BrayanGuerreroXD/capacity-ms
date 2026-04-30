@@ -9,11 +9,11 @@ spring:
   r2dbc:
     url: r2dbc:mysql://localhost:3306/db_capacity
     username: root
-    password: password
+    password: 1234
   flyway:
     url: jdbc:mysql://localhost:3306/db_capacity
     user: root
-    password: password
+    password: 1234
     locations: classpath:db/migration
   profiles:
     include: null
