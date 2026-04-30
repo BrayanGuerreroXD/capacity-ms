@@ -13,9 +13,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class CapacityTechnologyRequest {
-    @NotNull(message = "Capacity ID is required")
-    private Long capacityId;
-
     @NotNull(message = "Technology ID is required")
     private Long technologyId;
 }

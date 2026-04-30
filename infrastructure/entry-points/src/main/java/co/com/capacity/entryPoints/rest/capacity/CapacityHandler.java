@@ -25,7 +25,7 @@ public class CapacityHandler {
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(CapacityRequest.class)
-                .flatMap(dto -> createService.create(mapper.toModel(dto)))
+                .flatMap(dto -> createService.create(mapper.toModelWithTechnologies(dto)))
                 .map(mapper::toResponse)
                 .flatMap(response -> ServerResponse.ok()
                         .bodyValue(GenericResponseData.of(response)));
@@ -53,7 +53,7 @@ public class CapacityHandler {
         Long id = Long.parseLong(request.pathVariable("id"));
         return request.bodyToMono(CapacityRequest.class)
                 .flatMap(dto -> {
-                    var capacity = mapper.toModel(dto);
+                    var capacity = mapper.toModelWithTechnologies(dto);
                     capacity.setId(id);
                     return updateService.update(capacity);
                 })

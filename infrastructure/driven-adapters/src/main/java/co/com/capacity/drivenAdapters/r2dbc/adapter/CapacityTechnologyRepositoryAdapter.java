@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRepository {
@@ -19,6 +21,14 @@ public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRe
     @Override
     public Mono<CapacityTechnology> save(CapacityTechnology capacityTechnology) {
         return entityRepository.save(mapper.toEntity(capacityTechnology))
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Flux<CapacityTechnology> saveAll(List<CapacityTechnology> capacityTechnologies) {
+        return entityRepository.saveAll(capacityTechnologies.stream()
+                .map(mapper::toEntity)
+                .toList())
                 .map(mapper::toModel);
     }
 
