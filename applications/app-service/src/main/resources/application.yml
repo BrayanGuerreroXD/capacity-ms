@@ -1,0 +1,28 @@
+server:
+  port: 7600
+
+spring:
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/db_capacity
+    username: root
+    password: password
+  flyway:
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+
+kafka:
+  bootstrap-servers: localhost:9092
+  topics:
+    sync-technology-catalog: sync-technology-catalog
+    sync-technology-deleted: sync-technology-deleted
+    sync-capacity-catalog: sync-capacity-catalog
+    sync-capacity-deleted: sync-capacity-deleted
+    auth-login-admin: auth-login-admin
+    generic-auth-logout: generic-auth-logout
+  consumer:
+    group-id: capacity-ms-group
