@@ -46,9 +46,12 @@ public class CreateCapacityUseCase implements CreateCapacityService {
     private Mono<Void> validateTechnologiesExist(List<Long> technologyIds) {
         return technologyCatalogRepository.findAllById(technologyIds)
                 .collectList()
-                .filter(found -> found.size() == technologyIds.size())
-                .switchIfEmpty(Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND)))
-                .then();
+                .flatMap(found -> {
+                    if (found.size() != technologyIds.size()) {
+                        return Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND));
+                    }
+                    return Mono.empty();
+                });
     }
 
     private Mono<Void> saveTechnologies(Long capacityId, List<Long> technologyIds) {

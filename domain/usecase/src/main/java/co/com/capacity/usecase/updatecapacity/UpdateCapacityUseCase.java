@@ -80,9 +80,12 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     private Mono<Void> validateAndSaveTechnologies(Long capacityId, Set<Long> technologyIds) {
         return technologyCatalogRepository.findAllById(List.copyOf(technologyIds))
                 .collectList()
-                .filter(found -> found.size() == technologyIds.size())
-                .switchIfEmpty(Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND)))
-                .then(saveNewTechnologies(capacityId, technologyIds));
+                .flatMap(found -> {
+                    if (found.size() != technologyIds.size()) {
+                        return Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_NOT_FOUND));
+                    }
+                    return saveNewTechnologies(capacityId, technologyIds);
+                });
     }
 
     private Mono<Void> saveNewTechnologies(Long capacityId, Set<Long> technologyIds) {
