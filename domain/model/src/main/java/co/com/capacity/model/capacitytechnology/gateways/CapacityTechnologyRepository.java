@@ -14,4 +14,5 @@ public interface CapacityTechnologyRepository {
     Mono<Void> deleteById(Long id);
     Mono<Void> deleteByCapacityId(Long capacityId);
     Mono<Boolean> existsByTechnologyId(Long technologyId);
+    Mono<Boolean> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId);
 }

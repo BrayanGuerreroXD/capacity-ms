@@ -60,4 +60,9 @@ public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRe
     public Mono<Boolean> existsByTechnologyId(Long technologyId) {
         return entityRepository.existsByTechnologyId(technologyId);
     }
+
+    @Override
+    public Mono<Boolean> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId) {
+        return entityRepository.existsByTechnologyIdAndCapacityIdNot(technologyId, excludeCapacityId);
+    }
 }

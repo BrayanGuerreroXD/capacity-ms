@@ -1,5 +1,6 @@
 package co.com.capacity.drivenAdapters.r2dbc.repository;
 
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import co.com.capacity.drivenAdapters.r2dbc.entity.CapacityTechnologyEntity;
@@ -12,4 +13,7 @@ public interface CapacityTechnologyEntityRepository extends ReactiveCrudReposito
     Flux<CapacityTechnologyEntity> findByTechnologyId(Long technologyId);
     Mono<Void> deleteByCapacityId(Long capacityId);
     Mono<Boolean> existsByTechnologyId(Long technologyId);
+
+    @Query("SELECT EXISTS(SELECT 1 FROM capacity_technologies WHERE technology_id = :technologyId AND capacity_id != :excludeCapacityId)")
+    Mono<Boolean> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId);
 }
