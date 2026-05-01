@@ -9,6 +9,7 @@ import co.com.capacity.model.technologycatalog.gateways.TechnologyCatalogReposit
 import co.com.capacity.model.utils.exception.BadRequestException;
 import co.com.capacity.model.utils.exception.NotFoundException;
 import co.com.capacity.model.utils.GlobalExceptionEnum;
+import co.com.capacity.usecase.synctechnologycapacity.SyncTechnologyCapacityService;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +24,7 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     private final CapacityEventGateway eventGateway;
     private final TechnologyCatalogRepository technologyCatalogRepository;
     private final CapacityTechnologyRepository capacityTechnologyRepository;
+    private final SyncTechnologyCapacityService syncTechnologyCapacityService;
 
     @Override
     public Mono<Capacity> update(Capacity capacity) {
@@ -36,7 +38,11 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
         return capacityRepository.update(capacity)
                 .flatMap(updated -> updateTechnologies(capacity.getId(), capacity.getTechnologyIds())
                         .thenReturn(updated))
-                .flatMap(updated -> eventGateway.publish(updated).thenReturn(updated));
+                .flatMap(updated -> eventGateway.publish(updated).thenReturn(updated))
+                .doOnSuccess(updated -> {
+                    List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
+                    syncTechnologyCapacityService.publishSyncMatch(updated.getId(), techIds).subscribe(null, error -> {});
+                });
     }
 
     private Mono<Void> updateTechnologies(Long capacityId, List<Long> newTechnologyIds) {

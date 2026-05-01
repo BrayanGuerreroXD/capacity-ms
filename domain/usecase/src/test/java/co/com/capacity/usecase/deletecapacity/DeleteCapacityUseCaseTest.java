@@ -6,6 +6,7 @@ import co.com.capacity.model.capacity.gateways.CapacityRepository;
 import co.com.capacity.model.capacitytechnology.gateways.CapacityTechnologyRepository;
 import co.com.capacity.model.utils.exception.NotFoundException;
 import co.com.capacity.model.utils.GlobalExceptionEnum;
+import co.com.capacity.usecase.synctechnologycapacity.SyncTechnologyCapacityService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +16,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +33,9 @@ class DeleteCapacityUseCaseTest {
 
     @Mock
     private CapacityEventGateway eventGateway;
+
+    @Mock
+    private SyncTechnologyCapacityService syncTechnologyCapacityService;
 
     @InjectMocks
     private DeleteCapacityUseCase useCase;
@@ -54,11 +60,13 @@ class DeleteCapacityUseCaseTest {
         when(capacityRepository.delete(1L)).thenReturn(Mono.empty());
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
         when(eventGateway.publishDeleted(capacity)).thenReturn(Mono.empty());
+        when(syncTechnologyCapacityService.publishSyncMatch(eq(1L), eq(List.of()))).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.delete(1L))
                 .verifyComplete();
 
         verify(capacityRepository).delete(1L);
         verify(capacityTechnologyRepository).deleteByCapacityId(1L);
+        verify(syncTechnologyCapacityService).publishSyncMatch(eq(1L), eq(List.of()));
     }
 }
