@@ -12,7 +12,9 @@ import co.com.capacity.model.utils.GlobalExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class CreateCapacityUseCase implements CreateCapacityService {
@@ -37,6 +39,8 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                     .doOnSuccess(saved -> eventGateway.publish(saved).subscribe(null, error -> {}));
         }
         return validateTechnologiesExist(technologyIds)
+                .then(validateNoDuplicateTechnologies(technologyIds))
+                .then(validateTechnologiesNotAssigned(technologyIds, null))
                 .then(capacityRepository.save(capacity))
                 .flatMap(saved -> saveTechnologies(saved.getId(), technologyIds)
                         .thenReturn(saved))
@@ -55,6 +59,29 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                     }
                     return Mono.<Void>empty();
                 });
+    }
+
+    private Mono<Void> validateNoDuplicateTechnologies(List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
+        Set<Long> uniqueIds = new HashSet<>(technologyIds);
+        if (uniqueIds.size() != technologyIds.size()) {
+            return Mono.error(new BadRequestException(GlobalExceptionEnum.INVALID_REQUEST));
+        }
+        return Mono.empty();
+    }
+
+    private Mono<Void> validateTechnologiesNotAssigned(List<Long> technologyIds, Long excludeCapacityId) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
+        return Mono.when(
+                technologyIds.stream()
+                        .map(techId -> capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(techId, excludeCapacityId)
+                                .flatMap(exists -> exists ? Mono.empty() : Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_ALREADY_ASSIGNED))))
+                        .toList()
+        );
     }
 
     private Mono<Void> saveTechnologies(Long capacityId, List<Long> technologyIds) {
