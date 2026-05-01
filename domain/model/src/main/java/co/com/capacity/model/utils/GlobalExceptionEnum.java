@@ -13,6 +13,7 @@ public enum GlobalExceptionEnum {
     TECHNOLOGY_CATALOG_NOT_FOUND("Technology catalog not found", "No technology catalog found with the provided identifier"),
     TECHNOLOGY_NOT_FOUND("Technology not found", "One or more technologies not found"),
     TECHNOLOGY_IN_USE("Technology in use", "Cannot delete technology because it is being used in a capacity"),
+    TECHNOLOGY_ALREADY_ASSIGNED("Technology already assigned", "One or more technologies are already assigned to another capacity"),
     AUTH_NOT_FOUND("Auth not found", "No auth found with the provided token"),
     UNAUTHORIZED("Unauthorized", "Token is missing or invalid"),
     TOKEN_EXPIRED("Token expired", "The provided token has expired"),
