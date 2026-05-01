@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -18,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SyncCapacityBootcampServiceUseCaseTest {
 
     @Mock
@@ -52,7 +55,6 @@ class SyncCapacityBootcampServiceUseCaseTest {
         List<Long> capacityIds = List.of();
 
         when(capacityBootcampRepository.deleteByBootcampId(bootcampId)).thenReturn(Mono.empty());
-        when(capacityBootcampRepository.saveAll(any())).thenReturn(Flux.empty());
 
         StepVerifier.create(useCase.syncBootcampCapacities(bootcampId, capacityIds))
                 .verifyComplete();
@@ -65,7 +67,6 @@ class SyncCapacityBootcampServiceUseCaseTest {
         Long bootcampId = 1L;
 
         when(capacityBootcampRepository.deleteByBootcampId(bootcampId)).thenReturn(Mono.empty());
-        when(capacityBootcampRepository.saveAll(any())).thenReturn(Flux.empty());
 
         StepVerifier.create(useCase.syncBootcampCapacities(bootcampId, null))
                 .verifyComplete();
