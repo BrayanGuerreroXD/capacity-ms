@@ -8,6 +8,7 @@ import co.com.capacity.model.capacitytechnology.gateways.CapacityTechnologyRepos
 import co.com.capacity.model.technologycatalog.gateways.TechnologyCatalogRepository;
 import co.com.capacity.model.utils.exception.NotFoundException;
 import co.com.capacity.model.utils.GlobalExceptionEnum;
+import co.com.capacity.usecase.synctechnologycapacity.SyncTechnologyCapacityService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,9 @@ class UpdateCapacityUseCaseTest {
 
     @Mock
     private CapacityTechnologyRepository capacityTechnologyRepository;
+
+    @Mock
+    private SyncTechnologyCapacityService syncTechnologyCapacityService;
 
     @InjectMocks
     private UpdateCapacityUseCase useCase;
@@ -79,12 +83,14 @@ class UpdateCapacityUseCaseTest {
                 ));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
         when(eventGateway.publish(updated)).thenReturn(Mono.empty());
+        when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.update(input))
                 .expectNext(updated)
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).deleteByCapacityId(1L);
+        verify(syncTechnologyCapacityService).publishSyncMatch(eq(1L), eq(List.of(3L, 4L)));
     }
 
     @Test
@@ -102,11 +108,13 @@ class UpdateCapacityUseCaseTest {
                 ));
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
         when(eventGateway.publish(updated)).thenReturn(Mono.empty());
+        when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.update(input))
                 .expectNext(updated)
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).deleteByCapacityId(1L);
+        verify(syncTechnologyCapacityService).publishSyncMatch(eq(1L), eq(List.of()));
     }
 }
