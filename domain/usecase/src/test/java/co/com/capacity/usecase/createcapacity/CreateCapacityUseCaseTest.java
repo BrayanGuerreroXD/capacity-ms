@@ -94,6 +94,7 @@ class CreateCapacityUseCaseTest {
                         TechnologyCatalog.builder().id(1L).name("Java").build(),
                         TechnologyCatalog.builder().id(2L).name("Kotlin").build()
                 ));
+        when(capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(any(), any())).thenReturn(Mono.just(false));
         when(capacityRepository.save(any())).thenReturn(Mono.just(saved));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
         when(eventGateway.publish(saved)).thenReturn(Mono.empty());

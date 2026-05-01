@@ -75,6 +75,7 @@ class UpdateCapacityUseCaseTest {
                         CapacityTechnology.builder().id(1L).capacityId(1L).technologyId(1L).build(),
                         CapacityTechnology.builder().id(2L).capacityId(1L).technologyId(2L).build()
                 ));
+        when(capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(any(), any())).thenReturn(Mono.just(false));
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
         when(technologyCatalogRepository.findAllById(List.of(3L, 4L)))
                 .thenReturn(Flux.just(
