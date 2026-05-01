@@ -6,6 +6,7 @@ import co.com.capacity.model.capacity.gateways.CapacityRepository;
 import co.com.capacity.model.capacitytechnology.CapacityTechnology;
 import co.com.capacity.model.capacitytechnology.gateways.CapacityTechnologyRepository;
 import co.com.capacity.model.technologycatalog.gateways.TechnologyCatalogRepository;
+import co.com.capacity.usecase.synctechnologycapacity.SyncTechnologyCapacityService;
 import co.com.capacity.model.utils.exception.BadRequestException;
 import co.com.capacity.model.utils.exception.ConflictException;
 import co.com.capacity.model.utils.GlobalExceptionEnum;
@@ -23,6 +24,7 @@ public class CreateCapacityUseCase implements CreateCapacityService {
     private final CapacityEventGateway eventGateway;
     private final TechnologyCatalogRepository technologyCatalogRepository;
     private final CapacityTechnologyRepository capacityTechnologyRepository;
+    private final SyncTechnologyCapacityService syncTechnologyCapacityService;
 
     @Override
     public Mono<Capacity> create(Capacity capacity) {
@@ -36,7 +38,10 @@ public class CreateCapacityUseCase implements CreateCapacityService {
         List<Long> technologyIds = capacity.getTechnologyIds();
         if (technologyIds == null || technologyIds.isEmpty()) {
             return capacityRepository.save(capacity)
-                    .doOnSuccess(saved -> eventGateway.publish(saved).subscribe(null, error -> {}));
+                    .doOnSuccess(saved -> {
+                        eventGateway.publish(saved).subscribe(null, error -> {});
+                        syncTechnologyCapacityService.publishSyncMatch(saved.getId(), List.of()).subscribe(null, error -> {});
+                    });
         }
         return validateTechnologiesExist(technologyIds)
                 .then(validateNoDuplicateTechnologies(technologyIds))
@@ -44,7 +49,10 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                 .then(capacityRepository.save(capacity))
                 .flatMap(saved -> saveTechnologies(saved.getId(), technologyIds)
                         .thenReturn(saved))
-                .doOnSuccess(saved -> eventGateway.publish(saved).subscribe(null, error -> {}));
+                .doOnSuccess(saved -> {
+                    eventGateway.publish(saved).subscribe(null, error -> {});
+                    syncTechnologyCapacityService.publishSyncMatch(saved.getId(), technologyIds).subscribe(null, error -> {});
+                });
     }
 
     private Mono<Void> validateTechnologiesExist(List<Long> technologyIds) {

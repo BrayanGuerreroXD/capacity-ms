@@ -6,6 +6,7 @@ import co.com.capacity.model.capacity.gateways.CapacityRepository;
 import co.com.capacity.model.capacitytechnology.gateways.CapacityTechnologyRepository;
 import co.com.capacity.model.technologycatalog.TechnologyCatalog;
 import co.com.capacity.model.technologycatalog.gateways.TechnologyCatalogRepository;
+import co.com.capacity.usecase.synctechnologycapacity.SyncTechnologyCapacityService;
 import co.com.capacity.model.utils.exception.BadRequestException;
 import co.com.capacity.model.utils.exception.ConflictException;
 import co.com.capacity.model.utils.GlobalExceptionEnum;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +42,9 @@ class CreateCapacityUseCaseTest {
 
     @Mock
     private CapacityTechnologyRepository capacityTechnologyRepository;
+
+    @Mock
+    private SyncTechnologyCapacityService syncTechnologyCapacityService;
 
     @InjectMocks
     private CreateCapacityUseCase useCase;
@@ -66,12 +71,14 @@ class CreateCapacityUseCaseTest {
         when(capacityRepository.findByName("Kotlin")).thenReturn(Mono.empty());
         when(capacityRepository.save(any())).thenReturn(Mono.just(saved));
         when(eventGateway.publish(saved)).thenReturn(Mono.empty());
+        when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.create(input))
                 .expectNext(saved)
                 .verifyComplete();
 
         verify(eventGateway).publish(saved);
+        verify(syncTechnologyCapacityService).publishSyncMatch(eq(2L), eq(List.of()));
     }
 
     @Test
@@ -90,12 +97,14 @@ class CreateCapacityUseCaseTest {
         when(capacityRepository.save(any())).thenReturn(Mono.just(saved));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
         when(eventGateway.publish(saved)).thenReturn(Mono.empty());
+        when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.create(input))
                 .expectNext(saved)
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).saveAll(anyList());
+        verify(syncTechnologyCapacityService).publishSyncMatch(eq(3L), eq(List.of(1L, 2L)));
     }
 
     @Test
