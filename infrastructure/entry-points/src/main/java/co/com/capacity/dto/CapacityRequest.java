@@ -1,6 +1,7 @@
 package co.com.capacity.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -25,5 +26,7 @@ public class CapacityRequest {
     @Size(max = 90, message = "Description must be less than 90 characters")
     private String description;
 
+    @NotEmpty(message = "Technology list cannot be empty")
+    @Size(min = 3, max = 20, message = "Technology list must have between 3 and 20 items")
     private List<CapacityTechnologyRequest> technologies;
 }
