@@ -45,23 +45,48 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
         }
         final List<Long> technologyIdsToProcess = newTechnologyIds;
 
-        return capacityTechnologyRepository.findByCapacityId(capacityId)
-                .collectList()
-                .flatMap(existingAssociations -> {
-                    Set<Long> existingTechIds = new HashSet<>();
-                    for (CapacityTechnology ct : existingAssociations) {
-                        existingTechIds.add(ct.getTechnologyId());
-                    }
-                    Set<Long> newTechIds = new HashSet<>(technologyIdsToProcess);
+        return validateNoDuplicateTechnologies(technologyIdsToProcess)
+                .then(validateTechnologiesNotAssigned(technologyIdsToProcess, capacityId))
+                .then(capacityTechnologyRepository.findByCapacityId(capacityId)
+                        .collectList()
+                        .flatMap(existingAssociations -> {
+                            Set<Long> existingTechIds = new HashSet<>();
+                            for (CapacityTechnology ct : existingAssociations) {
+                                existingTechIds.add(ct.getTechnologyId());
+                            }
+                            Set<Long> newTechIds = new HashSet<>(technologyIdsToProcess);
 
-                    Set<Long> toDelete = new HashSet<>(existingTechIds);
-                    toDelete.removeAll(newTechIds);
+                            Set<Long> toDelete = new HashSet<>(existingTechIds);
+                            toDelete.removeAll(newTechIds);
 
-                    Set<Long> toAdd = new HashSet<>(newTechIds);
-                    toAdd.removeAll(existingTechIds);
+                            Set<Long> toAdd = new HashSet<>(newTechIds);
+                            toAdd.removeAll(existingTechIds);
 
-                    return processTechnologyChanges(capacityId, toDelete, toAdd);
-                });
+                            return processTechnologyChanges(capacityId, toDelete, toAdd);
+                        }));
+    }
+
+    private Mono<Void> validateNoDuplicateTechnologies(List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
+        Set<Long> uniqueIds = new HashSet<>(technologyIds);
+        if (uniqueIds.size() != technologyIds.size()) {
+            return Mono.error(new BadRequestException(GlobalExceptionEnum.INVALID_REQUEST));
+        }
+        return Mono.empty();
+    }
+
+    private Mono<Void> validateTechnologiesNotAssigned(List<Long> technologyIds, Long excludeCapacityId) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
+        return Mono.when(
+                technologyIds.stream()
+                        .map(techId -> capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(techId, excludeCapacityId)
+                                .flatMap(exists -> exists ? Mono.empty() : Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_ALREADY_ASSIGNED))))
+                        .toList()
+        );
     }
 
     private Mono<Void> processTechnologyChanges(Long capacityId, Set<Long> toDelete, Set<Long> toAdd) {
