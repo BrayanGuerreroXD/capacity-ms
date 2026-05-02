@@ -23,7 +23,19 @@ public class AuthRepositoryAdapter implements AuthRepository {
         AuthEntity entity = mapper.toEntity(auth);
         if (entity.getId() == null) {
             entity.setCreatedAt(LocalDateTime.now());
-        }
+@Override
+    public Mono<Auth> findByEmail(String email) {
+        return entityRepository.findByEmail(email)
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Mono<Void> deleteByEmail(String email) {
+        return entityRepository.findByEmail(email)
+                .flatMap(entity -> entityRepository.deleteById(entity.getId()))
+                .then();
+    }
+}
         return entityRepository.save(entity)
                 .map(mapper::toModel);
     }

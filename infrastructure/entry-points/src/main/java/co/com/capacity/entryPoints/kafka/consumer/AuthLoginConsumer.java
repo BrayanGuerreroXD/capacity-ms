@@ -28,7 +28,7 @@ public class AuthLoginConsumer {
                     .expiresIn(event.getExpiresIn())
                     .createdAt(LocalDateTime.now())
                     .build();
-            saveAuthService.save(auth)
+            saveAuthService.saveWithEmailValidation(auth)
                     .subscribe(null, error -> log.error("Error saving auth login: {}", error.getMessage()));
         } catch (Exception e) {
             log.error("Error parsing auth login message: {}", e.getMessage());
