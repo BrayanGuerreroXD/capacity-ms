@@ -35,10 +35,11 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     }
 
     private Mono<Capacity> updateCapacityWithTechnologies(Capacity capacity) {
+        List<Long> technologyIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
         return capacityRepository.update(capacity)
-                .flatMap(updated -> updateTechnologies(capacity.getId(), capacity.getTechnologyIds())
-                        .then(enrichWithTechnologies(updated, capacity.getTechnologyIds())))
-                .flatMap(this::publishEvents);
+                .flatMap(updated -> updateTechnologies(capacity.getId(), technologyIds)
+                        .then(enrichWithTechnologies(updated, technologyIds)))
+                .flatMap(updated -> publishEvents(updated, technologyIds));
     }
 
     private Mono<Capacity> enrichWithTechnologies(Capacity saved, List<Long> technologyIds) {
@@ -52,10 +53,9 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
                         .build());
     }
 
-    private Mono<Capacity> publishEvents(Capacity capacity) {
-        List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
+    private Mono<Capacity> publishEvents(Capacity capacity, List<Long> technologyIds) {
         return eventGateway.publish(capacity)
-                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), techIds))
+                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), technologyIds))
                 .then(Mono.defer(() -> Mono.just(capacity)));
     }
 

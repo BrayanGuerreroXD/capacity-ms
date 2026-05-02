@@ -42,7 +42,7 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                             .thenReturn(saved.toBuilder()
                                     .technologies(List.of())
                                     .build()))
-                    .flatMap(this::publishEvents);
+                    .flatMap(saved -> publishEvents(saved, List.of()));
         }
         return validateTechnologiesExist(technologyIds)
                 .then(validateNoDuplicateTechnologies(technologyIds))
@@ -50,7 +50,7 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                 .then(capacityRepository.save(capacity))
                 .flatMap(saved -> saveTechnologies(saved.getId(), technologyIds)
                         .then(enrichWithTechnologies(saved, technologyIds)))
-                .flatMap(this::publishEvents);
+                .flatMap(saved -> publishEvents(saved, technologyIds));
     }
 
     private Mono<Capacity> enrichWithTechnologies(Capacity saved, List<Long> technologyIds) {
@@ -64,10 +64,9 @@ public class CreateCapacityUseCase implements CreateCapacityService {
                         .build());
     }
 
-    private Mono<Capacity> publishEvents(Capacity capacity) {
-        List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
+    private Mono<Capacity> publishEvents(Capacity capacity, List<Long> technologyIds) {
         return eventGateway.publish(capacity)
-                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), techIds))
+                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), technologyIds))
                 .then(Mono.defer(() -> Mono.just(capacity)));
     }
 
