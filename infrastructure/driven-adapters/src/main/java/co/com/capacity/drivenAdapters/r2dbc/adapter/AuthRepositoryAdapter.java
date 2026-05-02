@@ -29,6 +29,19 @@ public class AuthRepositoryAdapter implements AuthRepository {
     }
 
     @Override
+    public Mono<Auth> findByEmail(String email) {
+        return entityRepository.findByEmail(email)
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Mono<Void> deleteByEmail(String email) {
+        return entityRepository.findFirstByEmail(email)
+                .flatMap(entity -> entityRepository.deleteById(entity.getId()))
+                .then();
+    }
+
+    @Override
     public Mono<Auth> findByToken(String token) {
         return entityRepository.findByToken(token)
                 .map(mapper::toModel);

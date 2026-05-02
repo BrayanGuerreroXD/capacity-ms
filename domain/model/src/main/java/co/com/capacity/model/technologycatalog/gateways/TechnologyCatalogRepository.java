@@ -12,6 +12,8 @@ public interface TechnologyCatalogRepository {
     Mono<TechnologyCatalog> findById(Long id);
     Flux<TechnologyCatalog> findAll();
     Flux<TechnologyCatalog> findAllById(List<Long> ids);
+    Flux<TechnologyCatalog> findByExternalIdIn(List<Long> externalIds);
     Mono<Boolean> existsByExternalId(Long externalId);
     Mono<Void> deleteByExternalId(Long externalId);
+    Mono<Void> deleteByExternalIdIn(List<Long> externalIds);
 }

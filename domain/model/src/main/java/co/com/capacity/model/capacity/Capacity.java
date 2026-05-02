@@ -1,5 +1,6 @@
 package co.com.capacity.model.capacity;
 
+import co.com.capacity.model.technologycatalog.TechnologyCatalog;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,4 +20,5 @@ public class Capacity {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<Long> technologyIds;
+    private List<TechnologyCatalog> technologies;
 }

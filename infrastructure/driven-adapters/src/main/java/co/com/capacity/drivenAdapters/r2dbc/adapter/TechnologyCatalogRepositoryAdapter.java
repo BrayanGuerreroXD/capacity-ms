@@ -57,6 +57,12 @@ public class TechnologyCatalogRepositoryAdapter implements TechnologyCatalogRepo
     }
 
     @Override
+    public Flux<TechnologyCatalog> findByExternalIdIn(List<Long> externalIds) {
+        return entityRepository.findByExternalIdIn(externalIds)
+                .map(mapper::toModel);
+    }
+
+    @Override
     public Mono<Boolean> existsByExternalId(Long externalId) {
         return entityRepository.existsByExternalId(externalId);
     }
@@ -64,6 +70,13 @@ public class TechnologyCatalogRepositoryAdapter implements TechnologyCatalogRepo
     @Override
     public Mono<Void> deleteByExternalId(Long externalId) {
         return entityRepository.findByExternalId(externalId)
+                .flatMap(entity -> entityRepository.deleteById(entity.getId()))
+                .then();
+    }
+
+    @Override
+    public Mono<Void> deleteByExternalIdIn(List<Long> externalIds) {
+        return entityRepository.findByExternalIdIn(externalIds)
                 .flatMap(entity -> entityRepository.deleteById(entity.getId()))
                 .then();
     }

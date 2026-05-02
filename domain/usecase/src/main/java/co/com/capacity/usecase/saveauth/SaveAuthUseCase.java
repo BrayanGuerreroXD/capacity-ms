@@ -14,4 +14,10 @@ public class SaveAuthUseCase implements SaveAuthService {
     public Mono<Auth> save(Auth auth) {
         return authRepository.save(auth);
     }
+
+    @Override
+    public Mono<Auth> saveWithEmailValidation(Auth auth) {
+        return authRepository.deleteByEmail(auth.getEmail())
+                .then(authRepository.save(auth));
+    }
 }

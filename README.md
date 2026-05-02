@@ -95,6 +95,7 @@ kafka:
     sync-capacity-technology-deleted: sync.capacity.technology.deleted
     sync-technologies-capacities-match: sync.technologies.capacities.match
     sync-capacities-bootcamps-match: sync.capacities.bootcamps.match
+    delete-bootcamp-match: delete.bootcamp.match
     auth-login-admin: auth.login.admin
     generic-auth-logout: generic.auth.logout
 ```
@@ -127,6 +128,7 @@ kafka:
 | `auth.login.admin` | `AuthLoginConsumer` | Saves auth login events |
 | `generic.auth.logout` | `AuthLogoutConsumer` | Deletes auth on logout |
 | `sync.capacities.bootcamps.match` | `CapacityBootcampSyncConsumer` | Syncs bootcamp-capacity relationships |
+| `delete.bootcamp.match` | `BootcampDeleteMatchConsumer` | Deletes bootcamp-capacity matches and related data |
 
 ### Produced Events
 
@@ -137,6 +139,7 @@ kafka:
 | `sync.capacity.technology.catalog` | `CapacityTechnologyEventPublisherAdapter` | Publishes capacity-technology associations |
 | `sync.capacity.technology.deleted` | `CapacityTechnologyEventPublisherAdapter` | Publishes capacity-technology deletions |
 | `sync.technologies.capacities.match` | `SyncTechnologyCapacityEventPublisherAdapter` | Publishes technology-capacity matching events |
+| `sync.technologies.deleted` | `TechnologyDeletedEventPublisherAdapter` | Publishes bulk technology deletion events |
 
 ## Development Commands
 

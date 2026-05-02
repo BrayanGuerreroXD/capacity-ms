@@ -70,14 +70,16 @@ class CreateCapacityUseCaseTest {
 
         when(capacityRepository.findByName("Kotlin")).thenReturn(Mono.empty());
         when(capacityRepository.save(any())).thenReturn(Mono.just(saved));
-        when(eventGateway.publish(saved)).thenReturn(Mono.empty());
+        when(eventGateway.publish(any())).thenReturn(Mono.empty());
         when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.create(input))
-                .expectNext(saved)
+                .expectNextMatches(cap -> cap.getId().equals(2L)
+                        && cap.getTechnologies() != null
+                        && cap.getTechnologies().isEmpty())
                 .verifyComplete();
 
-        verify(eventGateway).publish(saved);
+        verify(eventGateway).publish(any());
         verify(syncTechnologyCapacityService).publishSyncMatch(eq(2L), eq(List.of()));
     }
 
@@ -87,21 +89,24 @@ class CreateCapacityUseCaseTest {
                 .technologyIds(List.of(1L, 2L)).build();
         Capacity saved = Capacity.builder().id(3L).name("Go").description("Language")
                 .createdAt(LocalDateTime.now()).build();
+        TechnologyCatalog javaTech = TechnologyCatalog.builder().id(1L).name("Java").build();
+        TechnologyCatalog kotlinTech = TechnologyCatalog.builder().id(2L).name("Kotlin").build();
 
         when(capacityRepository.findByName("Go")).thenReturn(Mono.empty());
         when(technologyCatalogRepository.findAllById(List.of(1L, 2L)))
-                .thenReturn(Flux.just(
-                        TechnologyCatalog.builder().id(1L).name("Java").build(),
-                        TechnologyCatalog.builder().id(2L).name("Kotlin").build()
-                ));
+                .thenReturn(Flux.just(javaTech, kotlinTech));
         when(capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(any(), any())).thenReturn(Mono.just(false));
         when(capacityRepository.save(any())).thenReturn(Mono.just(saved));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
-        when(eventGateway.publish(saved)).thenReturn(Mono.empty());
+        when(eventGateway.publish(any())).thenReturn(Mono.empty());
         when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.create(input))
-                .expectNext(saved)
+                .expectNextMatches(cap -> cap.getId().equals(3L)
+                        && cap.getTechnologies() != null
+                        && cap.getTechnologies().size() == 2
+                        && cap.getTechnologies().stream().anyMatch(t -> t.getName().equals("Java"))
+                        && cap.getTechnologies().stream().anyMatch(t -> t.getName().equals("Kotlin")))
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).saveAll(anyList());

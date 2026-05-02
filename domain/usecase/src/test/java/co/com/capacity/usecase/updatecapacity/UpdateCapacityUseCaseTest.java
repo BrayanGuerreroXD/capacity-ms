@@ -67,6 +67,8 @@ class UpdateCapacityUseCaseTest {
                 .technologyIds(List.of(3L, 4L)).build();
         Capacity updated = Capacity.builder().id(1L).name("Updated").description("new desc")
                 .updatedAt(LocalDateTime.now()).build();
+        var goTech = co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(3L).name("Go").build();
+        var rustTech = co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(4L).name("Rust").build();
 
         when(capacityRepository.findById(1L)).thenReturn(Mono.just(existing));
         when(capacityRepository.update(any())).thenReturn(Mono.just(updated));
@@ -78,16 +80,17 @@ class UpdateCapacityUseCaseTest {
         when(capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(any(), any())).thenReturn(Mono.just(false));
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
         when(technologyCatalogRepository.findAllById(List.of(3L, 4L)))
-                .thenReturn(Flux.just(
-                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(3L).name("Go").build(),
-                        co.com.capacity.model.technologycatalog.TechnologyCatalog.builder().id(4L).name("Rust").build()
-                ));
+                .thenReturn(Flux.just(goTech, rustTech));
         when(capacityTechnologyRepository.saveAll(anyList())).thenReturn(Flux.empty());
-        when(eventGateway.publish(updated)).thenReturn(Mono.empty());
+        when(eventGateway.publish(any())).thenReturn(Mono.empty());
         when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.update(input))
-                .expectNext(updated)
+                .expectNextMatches(cap -> cap.getId().equals(1L)
+                        && cap.getTechnologies() != null
+                        && cap.getTechnologies().size() == 2
+                        && cap.getTechnologies().stream().anyMatch(t -> t.getName().equals("Go"))
+                        && cap.getTechnologies().stream().anyMatch(t -> t.getName().equals("Rust")))
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).deleteByCapacityId(1L);
@@ -108,11 +111,13 @@ class UpdateCapacityUseCaseTest {
                         CapacityTechnology.builder().id(1L).capacityId(1L).technologyId(1L).build()
                 ));
         when(capacityTechnologyRepository.deleteByCapacityId(1L)).thenReturn(Mono.empty());
-        when(eventGateway.publish(updated)).thenReturn(Mono.empty());
+        when(eventGateway.publish(any())).thenReturn(Mono.empty());
         when(syncTechnologyCapacityService.publishSyncMatch(any(), any())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.update(input))
-                .expectNext(updated)
+                .expectNextMatches(cap -> cap.getId().equals(1L)
+                        && cap.getTechnologies() != null
+                        && cap.getTechnologies().isEmpty())
                 .verifyComplete();
 
         verify(capacityTechnologyRepository).deleteByCapacityId(1L);

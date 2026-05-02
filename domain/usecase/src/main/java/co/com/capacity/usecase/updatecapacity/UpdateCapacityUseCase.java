@@ -35,14 +35,28 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     }
 
     private Mono<Capacity> updateCapacityWithTechnologies(Capacity capacity) {
+        List<Long> technologyIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
         return capacityRepository.update(capacity)
-                .flatMap(updated -> updateTechnologies(capacity.getId(), capacity.getTechnologyIds())
-                        .thenReturn(updated))
-                .flatMap(updated -> eventGateway.publish(updated).thenReturn(updated))
-                .doOnSuccess(updated -> {
-                    List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
-                    syncTechnologyCapacityService.publishSyncMatch(updated.getId(), techIds).subscribe(null, error -> {});
-                });
+                .flatMap(updated -> updateTechnologies(capacity.getId(), technologyIds)
+                        .then(enrichWithTechnologies(updated, technologyIds)))
+                .flatMap(updated -> publishEvents(updated, technologyIds));
+    }
+
+    private Mono<Capacity> enrichWithTechnologies(Capacity saved, List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.just(saved.toBuilder().technologies(List.of()).build());
+        }
+        return technologyCatalogRepository.findAllById(technologyIds)
+                .collectList()
+                .map(technologies -> saved.toBuilder()
+                        .technologies(technologies)
+                        .build());
+    }
+
+    private Mono<Capacity> publishEvents(Capacity capacity, List<Long> technologyIds) {
+        return eventGateway.publish(capacity)
+                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), technologyIds))
+                .then(Mono.defer(() -> Mono.just(capacity)));
     }
 
     private Mono<Void> updateTechnologies(Long capacityId, List<Long> newTechnologyIds) {

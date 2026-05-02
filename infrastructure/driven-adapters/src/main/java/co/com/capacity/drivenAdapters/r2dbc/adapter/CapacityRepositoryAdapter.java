@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -58,6 +59,13 @@ public class CapacityRepositoryAdapter implements CapacityRepository {
     @Override
     public Mono<Void> delete(Long id) {
         return entityRepository.deleteById(id);
+    }
+
+    @Override
+    public Mono<Void> deleteAllById(List<Long> ids) {
+        return Flux.fromIterable(ids)
+                .flatMap(id -> entityRepository.deleteById(id))
+                .then();
     }
 
     @Override
