@@ -8,10 +8,8 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AuthEntityMapper {
-    @Mapping(target = "createdAt", ignore = true)
     Auth toModel(AuthEntity entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
     AuthEntity toEntity(Auth model);
 }

@@ -36,7 +36,7 @@ public class AuthRepositoryAdapter implements AuthRepository {
 
     @Override
     public Mono<Void> deleteByEmail(String email) {
-        return entityRepository.findByEmail(email)
+        return entityRepository.findFirstByEmail(email)
                 .flatMap(entity -> entityRepository.deleteById(entity.getId()))
                 .then();
     }
