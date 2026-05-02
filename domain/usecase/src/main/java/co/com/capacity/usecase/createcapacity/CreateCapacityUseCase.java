@@ -38,21 +38,37 @@ public class CreateCapacityUseCase implements CreateCapacityService {
         List<Long> technologyIds = capacity.getTechnologyIds();
         if (technologyIds == null || technologyIds.isEmpty()) {
             return capacityRepository.save(capacity)
-                    .doOnSuccess(saved -> {
-                        eventGateway.publish(saved).subscribe(null, error -> {});
-                        syncTechnologyCapacityService.publishSyncMatch(saved.getId(), List.of()).subscribe(null, error -> {});
-                    });
+                    .flatMap(saved -> saveTechnologies(saved.getId(), technologyIds)
+                            .thenReturn(saved.toBuilder()
+                                    .technologies(List.of())
+                                    .build()))
+                    .flatMap(this::publishEvents);
         }
         return validateTechnologiesExist(technologyIds)
                 .then(validateNoDuplicateTechnologies(technologyIds))
                 .then(validateTechnologiesNotAssigned(technologyIds, null))
                 .then(capacityRepository.save(capacity))
                 .flatMap(saved -> saveTechnologies(saved.getId(), technologyIds)
-                        .thenReturn(saved))
-                .doOnSuccess(saved -> {
-                    eventGateway.publish(saved).subscribe(null, error -> {});
-                    syncTechnologyCapacityService.publishSyncMatch(saved.getId(), technologyIds).subscribe(null, error -> {});
-                });
+                        .then(enrichWithTechnologies(saved, technologyIds)))
+                .flatMap(this::publishEvents);
+    }
+
+    private Mono<Capacity> enrichWithTechnologies(Capacity saved, List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.just(saved.toBuilder().technologies(List.of()).build());
+        }
+        return technologyCatalogRepository.findAllById(technologyIds)
+                .collectList()
+                .map(technologies -> saved.toBuilder()
+                        .technologies(technologies)
+                        .build());
+    }
+
+    private Mono<Capacity> publishEvents(Capacity capacity) {
+        List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
+        return eventGateway.publish(capacity)
+                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), techIds))
+                .then(Mono.defer(() -> Mono.just(capacity)));
     }
 
     private Mono<Void> validateTechnologiesExist(List<Long> technologyIds) {
@@ -93,6 +109,9 @@ public class CreateCapacityUseCase implements CreateCapacityService {
     }
 
     private Mono<Void> saveTechnologies(Long capacityId, List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.empty();
+        }
         List<CapacityTechnology> associations = technologyIds.stream()
                 .map(techId -> CapacityTechnology.builder()
                         .capacityId(capacityId)

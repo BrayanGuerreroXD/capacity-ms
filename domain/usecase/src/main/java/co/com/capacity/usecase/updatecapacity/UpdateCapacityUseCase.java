@@ -37,12 +37,26 @@ public class UpdateCapacityUseCase implements UpdateCapacityService {
     private Mono<Capacity> updateCapacityWithTechnologies(Capacity capacity) {
         return capacityRepository.update(capacity)
                 .flatMap(updated -> updateTechnologies(capacity.getId(), capacity.getTechnologyIds())
-                        .thenReturn(updated))
-                .flatMap(updated -> eventGateway.publish(updated).thenReturn(updated))
-                .doOnSuccess(updated -> {
-                    List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
-                    syncTechnologyCapacityService.publishSyncMatch(updated.getId(), techIds).subscribe(null, error -> {});
-                });
+                        .then(enrichWithTechnologies(updated, capacity.getTechnologyIds())))
+                .flatMap(this::publishEvents);
+    }
+
+    private Mono<Capacity> enrichWithTechnologies(Capacity saved, List<Long> technologyIds) {
+        if (technologyIds == null || technologyIds.isEmpty()) {
+            return Mono.just(saved.toBuilder().technologies(List.of()).build());
+        }
+        return technologyCatalogRepository.findAllById(technologyIds)
+                .collectList()
+                .map(technologies -> saved.toBuilder()
+                        .technologies(technologies)
+                        .build());
+    }
+
+    private Mono<Capacity> publishEvents(Capacity capacity) {
+        List<Long> techIds = capacity.getTechnologyIds() != null ? capacity.getTechnologyIds() : List.of();
+        return eventGateway.publish(capacity)
+                .then(syncTechnologyCapacityService.publishSyncMatch(capacity.getId(), techIds))
+                .then(Mono.defer(() -> Mono.just(capacity)));
     }
 
     private Mono<Void> updateTechnologies(Long capacityId, List<Long> newTechnologyIds) {

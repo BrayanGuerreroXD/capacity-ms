@@ -18,6 +18,6 @@ public interface CapacityTechnologyEntityRepository extends ReactiveCrudReposito
     Mono<Void> deleteByCapacityIdIn(List<Long> capacityIds);
     Mono<Boolean> existsByTechnologyId(Long technologyId);
 
-    @Query("SELECT EXISTS(SELECT 1 FROM capacity_technologies WHERE technology_id = :technologyId AND capacity_id != :excludeCapacityId)")
-    Mono<Boolean> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId);
+    @Query("SELECT 1 FROM capacity_technologies WHERE technology_id = :technologyId AND capacity_id != :excludeCapacityId LIMIT 1")
+Mono<Integer> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId);
 }
