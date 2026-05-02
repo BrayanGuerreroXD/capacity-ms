@@ -17,7 +17,7 @@ public class TechnologyDeletedEventPublisherAdapter implements TechnologyDeleted
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${kafka.topics.sync-technology-deleted}")
+    @Value("${kafka.topics.delete.technology.match}")
     private String topicDeleted;
 
     public TechnologyDeletedEventPublisherAdapter(KafkaTemplate<String, Object> kafkaTemplate) {
@@ -26,10 +26,8 @@ public class TechnologyDeletedEventPublisherAdapter implements TechnologyDeleted
 
     @Override
     public Mono<Void> publishDeleted(List<Long> externalIds) {
-        return Flux.fromIterable(externalIds)
-                .flatMap(externalId -> Mono.fromFuture(kafkaTemplate.send(topicDeleted, Map.of(
-                        "id", externalId
-                ))))
-                .then();
+        return Mono.fromFuture(kafkaTemplate.send(topicDeleted, Map.of(
+                "technologyIds", externalIds
+        ))).then();
     }
 }
