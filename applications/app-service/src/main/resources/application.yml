@@ -59,5 +59,6 @@ kafka:
     sync-capacity-technology-deleted: sync.capacity.technology.deleted
     sync-technologies-capacities-match: sync.technologies.capacities.match
     sync-capacities-bootcamps-match: sync.capacities.bootcamps.match
+    delete-bootcamp-match: delete.bootcamp.match
     auth-login-admin: auth.login.admin
     generic-auth-logout: generic.auth.logout

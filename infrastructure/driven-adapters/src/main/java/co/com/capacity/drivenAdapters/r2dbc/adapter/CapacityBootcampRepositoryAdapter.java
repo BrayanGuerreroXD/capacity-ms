@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class CapacityBootcampRepositoryAdapter implements CapacityBootcampRepository {
@@ -29,6 +31,12 @@ public class CapacityBootcampRepositoryAdapter implements CapacityBootcampReposi
     }
 
     @Override
+    public Flux<CapacityBootcamp> findByBootcampIdAndCapacityIdIn(Long bootcampId, List<Long> capacityIds) {
+        return entityRepository.findByBootcampIdAndCapacityIdIn(bootcampId, capacityIds)
+                .map(mapper::toModel);
+    }
+
+    @Override
     public Flux<CapacityBootcamp> findByCapacityId(Long capacityId) {
         return entityRepository.findByCapacityId(capacityId)
                 .map(mapper::toModel);
@@ -37,6 +45,13 @@ public class CapacityBootcampRepositoryAdapter implements CapacityBootcampReposi
     @Override
     public Mono<Void> deleteByBootcampId(Long bootcampId) {
         return findByBootcampId(bootcampId)
+                .flatMap(cb -> entityRepository.deleteById(cb.getId()))
+                .then();
+    }
+
+    @Override
+    public Mono<Void> deleteByBootcampIdAndCapacityIdIn(Long bootcampId, List<Long> capacityIds) {
+        return findByBootcampIdAndCapacityIdIn(bootcampId, capacityIds)
                 .flatMap(cb -> entityRepository.deleteById(cb.getId()))
                 .then();
     }
