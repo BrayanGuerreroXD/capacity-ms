@@ -87,7 +87,7 @@ public class CreateCapacityUseCase implements CreateCapacityService {
         return Mono.when(
                 technologyIds.stream()
                         .map(techId -> capacityTechnologyRepository.existsByTechnologyIdAndCapacityIdNot(techId, excludeCapacityId)
-                                .flatMap(exists -> exists ? Mono.empty() : Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_ALREADY_ASSIGNED))))
+                                .flatMap(exists -> exists ? Mono.error(new BadRequestException(GlobalExceptionEnum.TECHNOLOGY_ALREADY_ASSIGNED)) : Mono.empty()))
                         .toList()
         );
     }
