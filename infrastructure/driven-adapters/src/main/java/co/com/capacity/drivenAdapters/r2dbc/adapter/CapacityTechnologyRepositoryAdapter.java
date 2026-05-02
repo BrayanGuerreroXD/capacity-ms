@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRepository {
@@ -23,8 +25,22 @@ public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRe
     }
 
     @Override
+    public Flux<CapacityTechnology> saveAll(List<CapacityTechnology> capacityTechnologies) {
+        return entityRepository.saveAll(capacityTechnologies.stream()
+                .map(mapper::toEntity)
+                .toList())
+                .map(mapper::toModel);
+    }
+
+    @Override
     public Flux<CapacityTechnology> findByCapacityId(Long capacityId) {
         return entityRepository.findByCapacityId(capacityId)
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Flux<CapacityTechnology> findByCapacityIdIn(List<Long> capacityIds) {
+        return entityRepository.findByCapacityIdIn(capacityIds)
                 .map(mapper::toModel);
     }
 
@@ -47,7 +63,20 @@ public class CapacityTechnologyRepositoryAdapter implements CapacityTechnologyRe
     }
 
     @Override
+    public Mono<Void> deleteByCapacityIdIn(List<Long> capacityIds) {
+        return findByCapacityIdIn(capacityIds)
+                .flatMap(ct -> entityRepository.deleteById(ct.getId()))
+                .then();
+    }
+
+    @Override
     public Mono<Boolean> existsByTechnologyId(Long technologyId) {
         return entityRepository.existsByTechnologyId(technologyId);
+    }
+
+    @Override
+    public Mono<Boolean> existsByTechnologyIdAndCapacityIdNot(Long technologyId, Long excludeCapacityId) {
+        return entityRepository.existsByTechnologyIdAndCapacityIdNot(technologyId, excludeCapacityId)
+                .map(result -> result != null);
     }
 }

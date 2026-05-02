@@ -7,9 +7,11 @@ import co.com.capacity.model.technologycatalog.TechnologyCatalog;
 import co.com.capacity.model.technologycatalog.gateways.TechnologyCatalogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,6 +45,24 @@ public class TechnologyCatalogRepositoryAdapter implements TechnologyCatalogRepo
     }
 
     @Override
+    public Flux<TechnologyCatalog> findAll() {
+        return entityRepository.findAll()
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Flux<TechnologyCatalog> findAllById(List<Long> ids) {
+        return entityRepository.findAllById(ids)
+                .map(mapper::toModel);
+    }
+
+    @Override
+    public Flux<TechnologyCatalog> findByExternalIdIn(List<Long> externalIds) {
+        return entityRepository.findByExternalIdIn(externalIds)
+                .map(mapper::toModel);
+    }
+
+    @Override
     public Mono<Boolean> existsByExternalId(Long externalId) {
         return entityRepository.existsByExternalId(externalId);
     }
@@ -50,6 +70,13 @@ public class TechnologyCatalogRepositoryAdapter implements TechnologyCatalogRepo
     @Override
     public Mono<Void> deleteByExternalId(Long externalId) {
         return entityRepository.findByExternalId(externalId)
+                .flatMap(entity -> entityRepository.deleteById(entity.getId()))
+                .then();
+    }
+
+    @Override
+    public Mono<Void> deleteByExternalIdIn(List<Long> externalIds) {
+        return entityRepository.findByExternalIdIn(externalIds)
                 .flatMap(entity -> entityRepository.deleteById(entity.getId()))
                 .then();
     }
